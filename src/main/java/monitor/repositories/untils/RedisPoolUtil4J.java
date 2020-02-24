@@ -42,9 +42,3 @@ public class RedisPoolUtil4J {
     }
 
 }
-
-@FunctionalInterface
-interface CallWithJedis {
-    void call(Jedis jedis);
-
-}

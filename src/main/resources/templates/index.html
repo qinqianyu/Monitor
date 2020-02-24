@@ -12,7 +12,7 @@
 <body>
 
 
-<div id="main" style="width: 2400px;height:1300px;"></div>
+<div id="main" style="width: 1600px;height:600px;"></div>
 
 <!--<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>-->
 <!--<script src="https://d3js.org/d3.v5.min.js"></script>-->
@@ -36,22 +36,23 @@
     var now = +new Date(1997, 9, 3);
     var oneDay = 24 * 3600 * 1000;
     var value = Math.random() * 1000;
+    var x1=[];
 
-    var x1 = [];
-    for(var i=0;i<60;i++){
-        x1.push(i);
-    }
-
-    $.ajax({
-        type:"get",
-        url:"monitor/cpuaverage",
-        data:{"ip":"192.168.106.101"},
-        dataType:"json",
-        async:false,
-        success:function(result) {
-            data=result;
-        }
-    });
+      $.ajax({
+            type:"get",
+            url:"monitor/cpuaverage",
+            data:{"ip":"192.168.20.139"},
+            dataType:"json",
+            async:true,
+            success:function(result) {
+                console.log(result);
+                for(var i=0;i<60;i++){
+                    var split = result[i].split("*");
+                    x1.push(split[0]);
+                    data.push(split[1]);
+                }
+            }
+        });
 
 
     option = {
@@ -73,7 +74,7 @@
             type: 'category',
             data: x1,
             splitLine: {
-                show: false
+                show: true
             }
         },
         yAxis: {
@@ -97,7 +98,7 @@
         $.ajax({
             type:"get",
             url:"monitor/cpuaverage",
-            data:{"ip":"192.168.106.101"},
+            data:{"ip":"192.168.20.139"},
             dataType:"json",
             async:true,
             success:function(result) {
@@ -113,6 +114,9 @@
         });
 
     }, 1000);
+
+
+
 
 </script>
 </body>

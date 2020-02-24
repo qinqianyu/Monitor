@@ -3,11 +3,14 @@ package monitor.repositories.DynamicPositories;
 
 import monitor.domin.CpuInfo;
 import monitor.domin.CpuThreadInfo;
+import monitor.repositories.untils.CallWithJedis;
 import monitor.repositories.untils.JSchExecutor;
 import monitor.repositories.untils.RedisPoolUtil4J;
 import redis.clients.jedis.Jedis;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,19 +21,21 @@ public class CpuLoad extends Thread {
 
     public CpuLoad(JSchExecutor executor) {
         this.executor = executor;
+        FLAG = true;
     }
 
     private static Boolean FLAG = true;
 
     @Override
     public void run() {
+        System.out.println("进行监控****************cpu");
         CpuInfo beforCpuInfo = null;
         CpuInfo cpuInfo = null;
         ArrayList<CpuThreadInfo> beforCpuThreadInfos;
         ArrayList<CpuThreadInfo> cpuThreadInfos = null;
         Jedis jedis = RedisPoolUtil4J.getConnection();
         String host = executor.getHost();
-        String cpukey="cpu-"+host;
+        String cpukey = "cpu-" + host;
         while (FLAG) {
             List<String> strings = null;
             try {
@@ -46,17 +51,17 @@ public class CpuLoad extends Thread {
             }
             if (beforCpuInfo != null) {
                 double cpuUsage = 100 * (1 - (float) (cpuInfo.getIdleCpuTime() - beforCpuInfo.getIdleCpuTime()) / (float) (cpuInfo.getTotalCpuTime() - beforCpuInfo.getTotalCpuTime()));
-                Long rpush = jedis.rpush(cpukey,  System.currentTimeMillis()+"*"+String.format("%.0f", cpuUsage));
+                Long rpush = jedis.rpush(cpukey, new SimpleDateFormat("HH:mm:ss").format(new Date(cpuInfo.getGatherTime())) + "*" + String.format("%.0f", cpuUsage));
                 if (rpush > 60) {
                     jedis.ltrim(cpukey, -60, -1);
                 }
-                 cpuThreadInfos = cpuInfo.getCpuThreadInfos();
-                 beforCpuThreadInfos = beforCpuInfo.getCpuThreadInfos();
-                int index=0;
-                for (CpuThreadInfo tmp:cpuThreadInfos) {
-                    String threadName=cpukey+"-"+index;
-                    double threadUsage=100 * (1 - (float) (tmp.getIdleCpuTime() - beforCpuThreadInfos.get(index).getIdleCpuTime()) / (float) (tmp.getTotalCpuTime() - beforCpuThreadInfos.get(index).getTotalCpuTime()));
-                    rpush = jedis.rpush(threadName,  String.format("%.2f", threadUsage));
+                cpuThreadInfos = cpuInfo.getCpuThreadInfos();
+                beforCpuThreadInfos = beforCpuInfo.getCpuThreadInfos();
+                int index = 0;
+                for (CpuThreadInfo tmp : cpuThreadInfos) {
+                    String threadName = cpukey + "-" + index;
+                    double threadUsage = 100 * (1 - (float) (tmp.getIdleCpuTime() - beforCpuThreadInfos.get(index).getIdleCpuTime()) / (float) (tmp.getTotalCpuTime() - beforCpuThreadInfos.get(index).getTotalCpuTime()));
+                    rpush = jedis.rpush(threadName, String.format("%.2f", threadUsage));
                     if (rpush > 60) {
                         jedis.ltrim(threadName, -60, -1);
                     }

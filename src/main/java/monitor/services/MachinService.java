@@ -84,5 +84,4 @@ public class MachinService {
         return arrayList;
     }
 
-
 }

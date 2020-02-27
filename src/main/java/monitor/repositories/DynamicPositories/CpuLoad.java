@@ -18,14 +18,12 @@ import java.util.List;
  */
 public class CpuLoad extends Thread {
     private JSchExecutor executor;
+    private static Boolean FLAG = true;
 
     public CpuLoad(JSchExecutor executor) {
         this.executor = executor;
-        FLAG = true;
+       // FLAG = true;
     }
-
-    private static Boolean FLAG = true;
-
     @Override
     public void run() {
         System.out.println("进行监控****************cpu");

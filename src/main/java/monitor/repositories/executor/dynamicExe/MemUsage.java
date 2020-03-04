@@ -1,12 +1,16 @@
-package monitor.repositories.DynamicPositories;
+package monitor.repositories.executor.dynamicExe;
 
 
+import com.redislabs.modules.rejson.JReJSON;
+import monitor.aomin.MemLoad;
 import monitor.domin.MemInfo;
-import monitor.repositories.untils.JSchExecutor;
-import monitor.repositories.untils.RedisPoolUtil4J;
+import monitor.repositories.connecters.JSchExecutor;
+import monitor.repositories.connecters.RedisPoolUtil4J;
 import redis.clients.jedis.Jedis;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,7 +28,8 @@ public class MemUsage extends Thread {
     @Override
     public void run() {
         MemInfo memInfo;
-        Jedis jedis = RedisPoolUtil4J.getConnection();
+        MemLoad memLoad = MemLoad.builder().build();
+        JReJSON jsonClient = RedisPoolUtil4J.getJsonClient();
         String memkey = "mem-" + executor.getHost();
         while (FLAG) {
             List<String> strings = null;
@@ -40,7 +45,10 @@ public class MemUsage extends Thread {
                 return;
             }
             if (memInfo != null) {
-                jedis.set(memkey, memInfo.getMemTotal() + "-" + memInfo.getMemUsed());
+                memLoad.setMemTotal(String.format("%.0f", memInfo.getMemTotal()));
+                memLoad.setMemUesd(String.format("%.0f", memInfo.getMemUsed()));
+                memLoad.setGatherTime(new SimpleDateFormat("mm:ss").format(new Date(memInfo.getGatherTime())));
+                jsonClient.set(memkey, memInfo);
             }
             try {
                 Thread.sleep(1000);
@@ -48,7 +56,6 @@ public class MemUsage extends Thread {
                 e.printStackTrace();
             }
         }
-        jedis.close();
     }
 
     public void setFlag(Boolean flag) {

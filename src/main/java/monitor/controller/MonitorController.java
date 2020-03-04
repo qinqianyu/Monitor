@@ -1,8 +1,9 @@
 package monitor.controller;
 
+import monitor.aomin.CpuLoad;
+import monitor.aomin.DiskIoLoad;
+import monitor.aomin.MemLoad;
 import monitor.domin.MachineStaticInfo;
-import monitor.domin.MemInfo;
-import monitor.domin.ResourceInfo;
 import monitor.services.MachinService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -92,8 +92,8 @@ public class MonitorController {
      * @param host  机器的ip
      * @return  机器内存信息
      */
-    @GetMapping("/meminfo")
-    public MemInfo getmem(@RequestParam(value = "ip", required = true) String host) {
+    @GetMapping("/mem")
+    public MemLoad getmem(@RequestParam(value = "ip", required = true) String host) {
         return machinService.getmem(host);
     }
 
@@ -102,29 +102,18 @@ public class MonitorController {
      * @param host  机器的ip
      * @return  机器IO占用信息
      */
-    @GetMapping("/resourceinfo")
-    public ResourceInfo getresource(@RequestParam(value = "ip", required = true) String host) {
-        return machinService.getresource(host);
+    @GetMapping("/diskio")
+    public DiskIoLoad getdiskio(@RequestParam(value = "ip", required = true) String host) {
+        return machinService.getdiskio(host);
     }
 
     /**
      *
      * @param host  机器的ip
-     * @return  cpu60秒内的综合负载列表
+     * @return  cpu1秒内的负载列表
      */
-    @GetMapping("/cpuaverage")
-    public List<String> getcpuaverage(@RequestParam(value = "ip", required = true) String host) {
-        return machinService.getcpuaverage(host);
+    @GetMapping("/cpu")
+    public CpuLoad getcpu(@RequestParam(value = "ip", required = true) String host) {
+        return machinService.getcpu(host);
     }
-    /**
-     *
-     * @param host  机器的ip
-     * @return  cpu60秒内的各个核心负载列表
-     */
-    @GetMapping("/cputhreads")
-    public List<List<Integer>> getcpucputhreads(@RequestParam(value = "ip", required = true) String host) {
-        return machinService.getcpucputhreads(host);
-    }
-
-
 }

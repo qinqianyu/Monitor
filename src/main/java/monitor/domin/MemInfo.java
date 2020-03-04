@@ -14,7 +14,7 @@ public class MemInfo {
     //空闲空间(单位是GB)
     private float MemFree;
     //已经使用空间(单位是GB)
-    private float MemUesd;
+    //private float MemUesd;
 
     //采集时间(时间戳)
     private Long gatherTime;

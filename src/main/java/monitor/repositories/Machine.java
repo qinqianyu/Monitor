@@ -3,11 +3,9 @@ package monitor.repositories;
 import com.jcraft.jsch.JSchException;
 import lombok.Data;
 import monitor.domin.MachineStaticInfo;
-import monitor.repositories.DynamicPositories.CpuLoad;
-import monitor.repositories.staticPositories.StaticGeter;
-import monitor.repositories.untils.JSchExecutor;
-import monitor.repositories.DynamicPositories.MemUsage;
-import monitor.repositories.DynamicPositories.ResourceUsage;
+import monitor.repositories.Positories.DynamicProxy;
+import monitor.repositories.Positories.StaticProxy;
+import monitor.repositories.connecters.JSchExecutor;
 
 import java.util.*;
 
@@ -29,21 +27,16 @@ public class Machine {
     private JSchExecutor executor;
     //获取静态信息的远程执行器
     private JSchExecutor staticExecutor;
-    //获取cpu的线程
-    private CpuLoad cpuLoad;
     //cpu的线程数量(逻辑核心数量)
     private Integer threadCount;
-    //获取内存信息的线程
-    private MemUsage memUsage;
-    //获取磁盘io的线程
-    private ResourceUsage resourceUsage;
+
+    private DynamicProxy dynamicProxy;
     //机器的静态信息
     private MachineStaticInfo machineStaticInfo;
     //当前监控机器的集合
     private static Map<String, Machine> machineList = new HashMap<>();
 
     /**
-     *
      * @param ip 机器ip
      * @return 对应ip的机器控制类
      */
@@ -52,7 +45,6 @@ public class Machine {
     }
 
     /**
-     *
      * @return 所有被监控机器的ip集合
      */
     public static Set<String> getMachineHosts() {
@@ -60,7 +52,6 @@ public class Machine {
     }
 
     /**
-     *
      * @return 所有被监控机器的静态信息集合
      */
     public static Set<MachineStaticInfo> getMachineStatics() {
@@ -74,9 +65,10 @@ public class Machine {
 
     /**
      * 用来添加一台需要被监控的机器
-     * @param user  用户名
-     * @param passwd    密码
-     * @param host  ip
+     *
+     * @param user   用户名
+     * @param passwd 密码
+     * @param host   ip
      * @return 添加成功与否的结果
      */
     public static Boolean addMachine(String user, String passwd, String host) {
@@ -96,8 +88,8 @@ public class Machine {
     public void updataStaticInfo() {
         try {
             staticExecutor.connect();
-            StaticGeter staticGeter = new StaticGeter(staticExecutor);
-            this.machineStaticInfo = staticGeter.getStaticInfo();
+            StaticProxy StaticProxy = new StaticProxy(staticExecutor);
+            this.machineStaticInfo = StaticProxy.getStaticInfo();
         } catch (JSchException e) {
             e.printStackTrace();
         }
@@ -109,16 +101,13 @@ public class Machine {
      * 开启动态监控
      */
     public void startDynamicMonitor() {
-        if (dynamicFlag)
-                return;
+        if (dynamicFlag) {
+            return;
+        }
         try {
             executor.connect();
-            cpuLoad = new CpuLoad(executor);
-            memUsage = new MemUsage(executor);
-            resourceUsage = new ResourceUsage(executor);
-            cpuLoad.start();
-            memUsage.start();
-            resourceUsage.start();
+            dynamicProxy = new DynamicProxy(executor);
+            dynamicProxy.start();
             this.dynamicFlag = true;
         } catch (JSchException e) {
             e.printStackTrace();
@@ -129,9 +118,7 @@ public class Machine {
      * 停止动态监控
      */
     public void stopDynamicMonitor() {
-        cpuLoad.setFlag(false);
-        memUsage.setFlag(false);
-        resourceUsage.setFlag(false);
+        dynamicProxy.stop();
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -154,6 +141,7 @@ public class Machine {
 
     private Machine() {
     }
+
     private void setDynamicFlag(Boolean flag) {
     }
 

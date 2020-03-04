@@ -1,10 +1,14 @@
 package monitor.services;
 
+import com.redislabs.modules.rejson.JReJSON;
+import monitor.aomin.CpuLoad;
+import monitor.aomin.DiskIoLoad;
+import monitor.aomin.MemLoad;
+import monitor.domin.DiskIoInfo;
 import monitor.domin.MachineStaticInfo;
 import monitor.domin.MemInfo;
-import monitor.domin.ResourceInfo;
 import monitor.repositories.Machine;
-import monitor.repositories.untils.RedisPoolUtil4J;
+import monitor.repositories.connecters.RedisPoolUtil4J;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 
@@ -44,44 +48,19 @@ public class MachinService {
         return Machine.getMachine(host).getMachineStaticInfo();
     }
 
-    public MemInfo getmem(String host) {
-        Jedis jedis = RedisPoolUtil4J.getConnection();
-        String mem = jedis.get("mem-" + host);
-        String[] split = mem.split("-");
-        jedis.close();
-        return MemInfo.builder().MemUesd(Float.parseFloat(split[1])).MemTotal(Float.parseFloat(split[0])).build();
+    public MemLoad getmem(String host) {
+        JReJSON jsonClient = RedisPoolUtil4J.getJsonClient();
+        return jsonClient.get("mem-" + host, MemLoad.class);
     }
-    public ResourceInfo getresource(String host) {
-        Jedis jedis = RedisPoolUtil4J.getConnection();
-        String resource = jedis.get("resource-" + host);
-        jedis.close();
-        return ResourceInfo.builder().ResourceUsage(Float.parseFloat(resource)).build();
+    public DiskIoLoad getdiskio(String host) {
+        JReJSON jsonClient = RedisPoolUtil4J.getJsonClient();
+        return jsonClient.get("diskio-" + host, DiskIoLoad.class);
     }
 
-    public List<String> getcpuaverage(String host) {
-        Jedis jedis = RedisPoolUtil4J.getConnection();
-        List<String> lrange = jedis.lrange("cpu-" + host, -60, -1);
-        jedis.close();
-        return lrange;
-    }
+    public CpuLoad getcpu(String host) {
+        JReJSON jsonClient = RedisPoolUtil4J.getJsonClient();
+        return jsonClient.get("cpu-" + host, CpuLoad.class);
 
-    public List<List<Integer>> getcpucputhreads(String host) {
-        Integer threadCount = Machine.getMachine(host).getMachineStaticInfo().getThreadCount();
-        Jedis jedis = RedisPoolUtil4J.getConnection();
-        ArrayList<List<Integer>> result = new ArrayList<>();
-        for (int i = 0; i < threadCount; i++) {
-            List<String> lrange = jedis.lrange("cpu-" + host + "-" + i, -60, -1);
-            result.add(parseList(lrange));
-        }
-        jedis.close();
-        System.out.println(result);
-        return result;
-    }
-
-    private List<Integer> parseList(List<String> lrange) {
-        ArrayList<Integer> arrayList = new ArrayList<>();
-        lrange.forEach((x) -> arrayList.add((int) Math.round(Double.parseDouble(x))));
-        return arrayList;
     }
 
 }

@@ -1,12 +1,12 @@
-package monitor.repositories.DynamicPositories;
+package monitor.repositories.executor.dynamicExe;
 
 
+import com.redislabs.modules.rejson.JReJSON;
+import monitor.aomin.CpuLoad;
 import monitor.domin.CpuInfo;
 import monitor.domin.CpuThreadInfo;
-import monitor.repositories.untils.CallWithJedis;
-import monitor.repositories.untils.JSchExecutor;
-import monitor.repositories.untils.RedisPoolUtil4J;
-import redis.clients.jedis.Jedis;
+import monitor.repositories.connecters.JSchExecutor;
+import monitor.repositories.connecters.RedisPoolUtil4J;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,22 +16,23 @@ import java.util.List;
 /**
  * 用来监控cpu的线程
  */
-public class CpuLoad extends Thread {
+public class CpuUsage extends Thread {
     private JSchExecutor executor;
     private static Boolean FLAG = true;
 
-    public CpuLoad(JSchExecutor executor) {
+    public CpuUsage(JSchExecutor executor) {
         this.executor = executor;
-       // FLAG = true;
+        // FLAG = true;
     }
+
     @Override
     public void run() {
-        System.out.println("进行监控****************cpu");
         CpuInfo beforCpuInfo = null;
-        CpuInfo cpuInfo = null;
+        CpuInfo cpuInfo;
+        CpuLoad cpuLoad = CpuLoad.builder().build();
         ArrayList<CpuThreadInfo> beforCpuThreadInfos;
         ArrayList<CpuThreadInfo> cpuThreadInfos = null;
-        Jedis jedis = RedisPoolUtil4J.getConnection();
+        JReJSON jsonClient = RedisPoolUtil4J.getJsonClient();
         String host = executor.getHost();
         String cpukey = "cpu-" + host;
         while (FLAG) {
@@ -49,22 +50,17 @@ public class CpuLoad extends Thread {
             }
             if (beforCpuInfo != null) {
                 double cpuUsage = 100 * (1 - (float) (cpuInfo.getIdleCpuTime() - beforCpuInfo.getIdleCpuTime()) / (float) (cpuInfo.getTotalCpuTime() - beforCpuInfo.getTotalCpuTime()));
-                Long rpush = jedis.rpush(cpukey, new SimpleDateFormat("HH:mm:ss").format(new Date(cpuInfo.getGatherTime())) + "*" + String.format("%.0f", cpuUsage));
-                if (rpush > 60) {
-                    jedis.ltrim(cpukey, -60, -1);
-                }
+                cpuLoad.setLoad(String.format("%.0f", cpuUsage));
+                cpuLoad.setGatherTime(new SimpleDateFormat("mm:ss").format(new Date(cpuInfo.getGatherTime())));
                 cpuThreadInfos = cpuInfo.getCpuThreadInfos();
                 beforCpuThreadInfos = beforCpuInfo.getCpuThreadInfos();
                 int index = 0;
-                for (CpuThreadInfo tmp : cpuThreadInfos) {
-                    String threadName = cpukey + "-" + index;
+                for (CpuThreadInfo tmp : cpuThreadInfos){
                     double threadUsage = 100 * (1 - (float) (tmp.getIdleCpuTime() - beforCpuThreadInfos.get(index).getIdleCpuTime()) / (float) (tmp.getTotalCpuTime() - beforCpuThreadInfos.get(index).getTotalCpuTime()));
-                    rpush = jedis.rpush(threadName, String.format("%.2f", threadUsage));
-                    if (rpush > 60) {
-                        jedis.ltrim(threadName, -60, -1);
-                    }
+                    cpuLoad.getThreads().add(String.format("%.0f", threadUsage));
                     index++;
                 }
+                jsonClient.set(cpukey, cpuLoad);
             }
             beforCpuInfo = cpuInfo;
             try {
@@ -73,7 +69,6 @@ public class CpuLoad extends Thread {
                 e.printStackTrace();
             }
         }
-        jedis.close();
     }
 
     public void setFlag(Boolean flag) {

@@ -1,14 +1,12 @@
 package monitor.repositories.executor.dynamicExe;
 
-
-import com.jcraft.jsch.JSchException;
 import com.redislabs.modules.rejson.JReJSON;
+import lombok.extern.slf4j.Slf4j;
 import monitor.aomin.CpuLoad;
 import monitor.domin.CpuInfo;
 import monitor.domin.CpuThreadInfo;
 import monitor.repositories.connecters.JSchExecutor;
 import monitor.repositories.connecters.RedisPoolUtil4J;
-import org.junit.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,6 +16,7 @@ import java.util.List;
 /**
  * 用来监控cpu的线程
  */
+@Slf4j
 public class CpuUsage extends Thread {
     private JSchExecutor executor;
     private static Boolean FLAG = true;
@@ -47,7 +46,7 @@ public class CpuUsage extends Thread {
             if (strings != null) {
                 cpuInfo = parseCpuTime(strings);
             } else {
-                System.out.println("cpu使用率：获取不到");
+                log.info("cpu使用率：获取不到");
                 return;
             }
             if (beforCpuInfo != null) {
@@ -63,8 +62,8 @@ public class CpuUsage extends Thread {
                     cpuLoad.getThreads().add(String.format("%.0f", threadUsage));
                     index++;
                 }
-                System.out.println(cpuLoad);
                 jsonClient.set(cpukey, cpuLoad);
+                log.info(cpuInfo.toString());
             }
             beforCpuInfo = cpuInfo;
             try {

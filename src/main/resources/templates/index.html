@@ -12,7 +12,7 @@
 <body>
 
 
-<div id="main" style="width: 2400px;height:1300px;"></div>
+<div id="main" style="width: 1200px;height:800px;"></div>
 
 <!--<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>-->
 <!--<script src="https://d3js.org/d3.v5.min.js"></script>-->
@@ -87,21 +87,20 @@
         $.ajax({
             type:"get",
             url:"monitor/cpu",
-            data:{"ip":"192.168.106.101"},
+            data:{"ip":"192.168.20.139"},
             dataType:"json",
             async:true,
             success:function(result) {
-                for(var i=0;i<60;i++){
                     option.xAxis.data.shift();
                     option.xAxis.data.push(result.gatherTime);
                     option.series[0].data.shift();
                     option.series[0].data.push(result.load);
-                }
                 myChart.setOption(option,true,false);
             }
         });
 
     }, 1000);
+
 
 </script>
 </body>

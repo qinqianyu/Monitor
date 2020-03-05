@@ -11,8 +11,8 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
  * 用来连接redis的连接池
  */
 public class RedisPoolUtil4J {
-    //private static final String redisHost = "192.168.20.138";//redis的ip地址
-    private static final String redisHost = "192.168.106.101";//redis的ip地址
+    private static final String redisHost = "192.168.20.138";//redis的ip地址
+    //private static final String redisHost = "192.168.106.101";//redis的ip地址
     private static final int redisPort = 6379;//端口
     private static final int maxTotal = 10;//连接池总数
     private static final int maxIdle = 5;//最大空闲连接数

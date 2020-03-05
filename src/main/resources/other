@@ -5,9 +5,10 @@ cpu-host
 cpu-host-index
 
 net-" + host;
+net-" + host;
 
 
-
+redis 初始化：json.set instance . '[]'
 
 
 

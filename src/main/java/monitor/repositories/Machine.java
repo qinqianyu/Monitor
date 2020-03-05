@@ -1,11 +1,20 @@
 package monitor.repositories;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
 import com.jcraft.jsch.JSchException;
 import lombok.Data;
+import monitor.domin.Instance;
 import monitor.domin.MachineStaticInfo;
 import monitor.repositories.Positories.DynamicProxy;
 import monitor.repositories.Positories.StaticProxy;
 import monitor.repositories.connecters.JSchExecutor;
+import monitor.repositories.connecters.RedisPoolUtil4J;
+import com.alibaba.fastjson.JSON;
+import redis.clients.jedis.Client;
+import redis.clients.jedis.Jedis;
 
 import java.util.*;
 
@@ -35,6 +44,7 @@ public class Machine {
     private MachineStaticInfo machineStaticInfo;
     //当前监控机器的集合
     private static Map<String, Machine> machineList = new HashMap<>();
+
 
     /**
      * @param ip 机器ip
@@ -76,6 +86,12 @@ public class Machine {
             return false;
         } else {
             Machine machine = new Machine(user, passwd, host);
+            Instance instance = Instance.builder().host(host).user(user).password(passwd).build();
+            String jsonString = JSON.toJSONString(instance);
+            RedisPoolUtil4J.execute((x) -> {
+                x.getClient().sendCommand("json.arrappend"::getBytes, "instance".getBytes(), ".".getBytes(), jsonString.getBytes());
+                x.getClient().getIntegerReply();
+            });
             machine.updataStaticInfo();
             machineList.put(host, machine);
             return true;

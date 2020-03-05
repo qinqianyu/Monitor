@@ -23,5 +23,4 @@ public class MachineStaticInfo {
     private Float diskcapacity;
     //硬盘已经使用容量(单位是GB)
     private Float diskused;
-
 }

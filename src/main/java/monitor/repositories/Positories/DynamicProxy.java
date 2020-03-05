@@ -27,6 +27,10 @@ public class DynamicProxy {
         memUsage = new MemUsage(executor);
         diskIoUsage = new DiskIoUsage(executor);
         netUsage = new NetUsage(executor);
+        CpuUsage.start();
+        memUsage.start();
+        diskIoUsage.start();
+        netUsage.start();
     }
 
     public void stop() {

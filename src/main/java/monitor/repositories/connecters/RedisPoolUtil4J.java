@@ -11,11 +11,12 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
  * 用来连接redis的连接池
  */
 public class RedisPoolUtil4J {
-    private static final String redisHost = "192.168.20.138";//redis的ip地址
+    //private static final String redisHost = "192.168.20.138";//redis的ip地址
+    private static final String redisHost = "192.168.106.101";//redis的ip地址
     private static final int redisPort = 6379;//端口
-    private static final int maxTotal = 50;//连接池总数
-    private static final int maxIdle = 30;//最大空闲连接数
-    private static final int minIdle = 10;//最少空闲连接数
+    private static final int maxTotal = 10;//连接池总数
+    private static final int maxIdle = 5;//最大空闲连接数
+    private static final int minIdle = 3;//最少空闲连接数
     private static final int redisTimeout = 2000;//连接redis超时时间,单位毫秒!默认2000,有布隆过滤器建议调大一点.
     private static final long maxWaitMillis = 10000;//申请资源最大等待时间,过期报错
     private static final String redisPassword = null;//密码

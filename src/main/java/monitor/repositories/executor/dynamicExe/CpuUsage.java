@@ -1,12 +1,14 @@
 package monitor.repositories.executor.dynamicExe;
 
 
+import com.jcraft.jsch.JSchException;
 import com.redislabs.modules.rejson.JReJSON;
 import monitor.aomin.CpuLoad;
 import monitor.domin.CpuInfo;
 import monitor.domin.CpuThreadInfo;
 import monitor.repositories.connecters.JSchExecutor;
 import monitor.repositories.connecters.RedisPoolUtil4J;
+import org.junit.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,14 +54,16 @@ public class CpuUsage extends Thread {
                 double cpuUsage = 100 * (1 - (float) (cpuInfo.getIdleCpuTime() - beforCpuInfo.getIdleCpuTime()) / (float) (cpuInfo.getTotalCpuTime() - beforCpuInfo.getTotalCpuTime()));
                 cpuLoad.setLoad(String.format("%.0f", cpuUsage));
                 cpuLoad.setGatherTime(new SimpleDateFormat("mm:ss").format(new Date(cpuInfo.getGatherTime())));
+                cpuLoad.setThreads((new ArrayList<String>()));
                 cpuThreadInfos = cpuInfo.getCpuThreadInfos();
                 beforCpuThreadInfos = beforCpuInfo.getCpuThreadInfos();
                 int index = 0;
-                for (CpuThreadInfo tmp : cpuThreadInfos){
+                for (CpuThreadInfo tmp : cpuThreadInfos) {
                     double threadUsage = 100 * (1 - (float) (tmp.getIdleCpuTime() - beforCpuThreadInfos.get(index).getIdleCpuTime()) / (float) (tmp.getTotalCpuTime() - beforCpuThreadInfos.get(index).getTotalCpuTime()));
                     cpuLoad.getThreads().add(String.format("%.0f", threadUsage));
                     index++;
                 }
+                System.out.println(cpuLoad);
                 jsonClient.set(cpukey, cpuLoad);
             }
             beforCpuInfo = cpuInfo;
@@ -116,5 +120,4 @@ public class CpuUsage extends Thread {
         cpuInfo.setThreadCount(cpuThreadInfos.size());
         return cpuInfo;
     }
-
 }
